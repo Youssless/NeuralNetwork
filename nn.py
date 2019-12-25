@@ -1,20 +1,40 @@
+#!/usr/bin/env python
+
 import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.colors as mc
+from sklearn.datasets import make_moons
+
+
+# TODO: Cost Function/Gradient Descent
+# TODO: Back Propagation
+# TODO: Logs
 
 class NeuralNetwork:
-    def __init__(self, inp):
-        self.nodes_per_layer = np.shape(inp)[0]
-        self.num_of_layers = np.shape(inp)[1]
+    '''
+    Define the number of:
+    - Input nodes
+    - Hidden nodes
+    - Output nodes
 
-        # Z = W.I , W = Weights matrix, I = Input matrix
-        # O = sigmoid(Z) , O = Sigmoid matrix
-        self.W = np.random.random((self.nodes_per_layer, self.nodes_per_layer))
-        self.I = inp
-        self.Z = None
-        self.O = None
+    To make a neural network
+    '''
+    def __init__(self, n_inp, n_hidden, n_out):
+        # number of nodes in each layer
+        self.n_inp = n_inp
+        self.n_hidden = n_hidden
+        self.n_out = n_out
 
-        # initial output
-        self.__forward_propagate__()
+        # number of layers
+        self.n_layers = 2
 
+        #initial weights for the output
+        self.W = np.random.rand(self.n_hidden, self.n_inp)
+
+    '''
+    Sigmoid Function -> Smoothed out perceptron.
+    Output = 0 < R < 1
+    '''
     def sigmoid(self, X):
         return 1 / (1 + np.exp(-X))
 
@@ -24,25 +44,45 @@ class NeuralNetwork:
     def __back_propagate__(self):
         pass
 
-    def __forward_propagate__(self):
+    def __forward_propagate__(self, X):
         # Z = W.I
         # O = sigmoid(Z)
-        self.Z = np.dot(self.W, self.I)
-        self.O = self.sigmoid(self.Z)
+        print(X)
+        for i in range(self.n_layers):
+            Z = np.dot(self.W, X)
+            O = self.sigmoid(Z)
 
-    def log(self):
-        print('-----|Input|-----\n')
-        print(self.I, '\n')
-        print('-----|Weights|-----\n')
-        print(self.W, '\n')
-        print('-----|Pre-Sigmoid|-----\n')
-        print(self.Z, '\n')
-        print('-----|Post-Sigmoid|-----\n')
-        print(self.O, '\n')
+            # next input
+            X = O
+            print('Layer', i)
+            print(X)
+            
+            # next layer weights
+            self.W = np.random.rand(self.n_out, self.n_hidden)
+
+
+
+    # def log(self):
+    #     print('-----|Input|-----\n')
+    #     print(self.I, '\n')
+    #     print('-----|Weights|-----\n')
+    #     print(self.W, '\n')
+    #     print('-----|Pre-Sigmoid|-----\n')
+    #     print(self.Z, '\n')
+    #     print('-----|Post-Sigmoid|-----\n')
+    #     print(self.O, '\n')
 
 
 
 if __name__ == '__main__':
-    inp = np.array([[0.5, 3, 0.2], [0.11, 0.54, 1.3], [0.003, 0.34, 12.54]])
-    nn = NeuralNetwork(inp)
-    nn.log()
+    data, labels = make_moons(n_samples=200, noise=0.04, random_state=0)
+    print(data.shape, labels.shape)
+    print(data)
+    color_map = mc.LinearSegmentedColormap.from_list("", ['red', 'yellow'])
+    plt.scatter(data[:, 0], data[:, 1], c=labels, cmap=color_map)
+
+    nn = NeuralNetwork(400, 4, 2)
+    nn.__forward_propagate__(data.reshape(-1, 1))
+    plt.show()
+    
+    #nn.log()
