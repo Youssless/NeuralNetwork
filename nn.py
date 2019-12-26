@@ -25,64 +25,78 @@ class NeuralNetwork:
         self.n_hidden = n_hidden
         self.n_out = n_out
 
+        # delays the triggering of the activation function
+        self.bias = 0.5
+
         # number of layers
         self.n_layers = 2
 
-        #initial weights for the output
-        self.W = np.random.rand(self.n_hidden, self.n_inp)
-
     '''
+    Activation function
     Sigmoid Function -> Smoothed out perceptron.
     Output = 0 < R < 1
     '''
     def sigmoid(self, X):
         return 1 / (1 + np.exp(-X))
 
-    def train(self):
+    '''
+    Activation function
+    Perceptron -> Simplest artificial neuron
+    Output = 1 or 0
+    '''
+    def perceptron(self, X):
+        for i in range(len(X)):
+            if X[i] >= 1:
+                X[i] = 1
+            else:
+                X[i] = 0
+        return X
+
+    def train(self, X, y):
+        out = self.__forward_propagate(X)
+        return out
+
+    def __back_propagate(self):
         pass
 
-    def __back_propagate__(self):
-        pass
-
-    def __forward_propagate__(self, X):
+    def __forward_propagate(self, X):
+        n_weights = [self.n_inp, self.n_hidden, self.n_out]
         # Z = W.I
         # O = sigmoid(Z)
-        print(X)
         for i in range(self.n_layers):
-            Z = np.dot(self.W, X)
+            W = np.random.rand(n_weights[i+1], n_weights[i])
+            Z = np.dot(W, X) + self.bias
             O = self.sigmoid(Z)
 
             # next input
             X = O
-            print('Layer', i)
-            print(X)
+
+        return X
             
-            # next layer weights
-            self.W = np.random.rand(self.n_out, self.n_hidden)
+    def cost(self):
+        pass
 
-
-
-    # def log(self):
-    #     print('-----|Input|-----\n')
-    #     print(self.I, '\n')
-    #     print('-----|Weights|-----\n')
-    #     print(self.W, '\n')
-    #     print('-----|Pre-Sigmoid|-----\n')
-    #     print(self.Z, '\n')
-    #     print('-----|Post-Sigmoid|-----\n')
-    #     print(self.O, '\n')
-
-
+    def test(self, X):
+        print('[Forward Propagation]')
+        out = self.__forward_propagate(X)
+        return out
 
 if __name__ == '__main__':
-    data, labels = make_moons(n_samples=200, noise=0.04, random_state=0)
-    print(data.shape, labels.shape)
-    print(data)
-    color_map = mc.LinearSegmentedColormap.from_list("", ['red', 'yellow'])
-    plt.scatter(data[:, 0], data[:, 1], c=labels, cmap=color_map)
+    # data, labels = make_moons(n_samples=200, noise=0.04, random_state=0)
+    # print(data.shape, labels.shape)
+    # print(data)
+    # color_map = mc.LinearSegmentedColormap.from_list("", ['red', 'yellow'])
+    # plt.scatter(data[:, 0], data[:, 1], c=labels, cmap=color_map)
 
-    nn = NeuralNetwork(400, 4, 2)
-    nn.__forward_propagate__(data.reshape(-1, 1))
-    plt.show()
+    # nn = NeuralNetwork(400, 4, 2)
+    # nn.__forward_propagate__(data.reshape(-1, 1))
+    # plt.show()
     
     #nn.log()
+
+    nn = NeuralNetwork(2, 3, 1)
+    X = np.array([[0, 0], [1, 0], [0, 1], [1, 1]])
+    
+    y = np.array([0, 1, 1, 0])
+    out = nn.test(X[3])
+    print(out)
