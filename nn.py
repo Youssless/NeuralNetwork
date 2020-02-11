@@ -3,7 +3,6 @@ from numpy import random
 
 
 class NeuralNetwork:
-
     def __init__(self, model):
         try:
             self.model = model
@@ -21,6 +20,7 @@ class NeuralNetwork:
 
     def train(self, X, y, alpha=0.03, epochs=1000):
         self.back_propagate(X, y, alpha, epochs)
+        return self.output(X)
 
     def sigmoid(self, Z):
         return 1/(1+np.exp(-Z))
@@ -36,6 +36,9 @@ class NeuralNetwork:
             nodes.insert(i+1, next_layer)
             X = next_layer
         return np.array(nodes)
+
+    def output(self, X):
+        return self.forward_propagate(X)[self.layers-1]
 
     def back_propagate(self, X, y, alpha, epochs):
         for e in range(epochs):
@@ -66,10 +69,10 @@ class NeuralNetwork:
 
 
 if __name__ == "__main__":
-    model = [2, 3, 1]
+    model = [2, 4, 1]
     X = np.array([1, 1])
     y = np.array([0])
     nn = NeuralNetwork(model)
 
-    nn.train(X, y, alpha=0.03, epochs=10000)
-    print(nn.forward_propagate(X))
+    output = nn.train(X, y, alpha=0.03, epochs=10000)
+    print(output)
