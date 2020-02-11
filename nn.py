@@ -16,8 +16,6 @@ class NeuralNetwork:
         try:
             self.model = model
             self.layers = len(model)
-            if len(model) < 2:
-                raise Exception("model length must be > 1, a network must contain more")
             self.bias = np.ones(shape=(self.layers-1, 1))
             # each column is is a single node connection to next layer, each row is a connection from prev layer to one node in the next layer
             self.weights = [random.random(size=(self.model[i+1], self.model[i])) for i in range(self.layers-1)]
@@ -28,7 +26,10 @@ class NeuralNetwork:
                 print("model is not a list.")
                 print("model must be in the format equivalent to [2, 2, 2, etc..] which defines the number of neurons in each layer")
 
-            
+        finally:
+            if self.layers == 1:
+                raise Exception("model length must be > 1, a network must contain more than 1 layer")
+
 
     def train(self, X, y, alpha=0.03, epochs=1000):
         self.back_propagate(X, y, alpha, epochs)
