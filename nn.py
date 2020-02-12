@@ -32,16 +32,21 @@ class NeuralNetwork:
 
 
     def train(self, X, y, alpha=0.03, epochs=1000):
-        self.back_propagate(X, y, alpha, epochs)
+        self.__back_propagate(X, y, alpha, epochs)
         return self.output(X)
 
+    # activation funtion real values between 0 and 1
     def sigmoid(self, Z):
         return 1/(1+np.exp(-Z))
 
     def cost(self, y_pred, y_actual):
         return (1/self.layers)*np.sum((y_pred-y_actual)**2)
 
-    def forward_propagate(self, X):
+    def output(self, X):
+        return self.__forward_propagate(X)[self.layers-1]
+
+    # calculates the next node value based on the previous layer
+    def __forward_propagate(self, X):
         next_layer = None
         nodes = [X]
         for i in range(self.layers-1):
@@ -50,14 +55,12 @@ class NeuralNetwork:
             X = next_layer
         return np.array(nodes)
 
-    def output(self, X):
-        return self.forward_propagate(X)[self.layers-1]
-
-    def back_propagate(self, X, y, alpha, epochs):
+    # back propagates to get the errors then uses gradient descent to calculate change in weights
+    def __back_propagate(self, X, y, alpha, epochs):
         for e in range(epochs):
-            nodes = self.forward_propagate(X)
-            print("epoch: {}".format(e))
-            print("cost = {}".format(self.cost(y, nodes[self.layers-1])))
+            nodes = self.__forward_propagate(X)
+            #print("epoch: {}".format(e))
+            #print("cost = {}".format(self.cost(y, nodes[self.layers-1])))
             curr_error = np.array(y - nodes[self.layers-1])
             layer_error = None
             errors = []
@@ -72,10 +75,10 @@ class NeuralNetwork:
             E = np.array(errors)
 
             # perform gradient descent
-            self.gradient_descent(nodes, alpha, E)
+            self.__gradient_descent(nodes, alpha, E)
         
-
-    def gradient_descent(self, nodes, alpha, E):
+    # algorithm that changes weights to give the correct output based on the error
+    def __gradient_descent(self, nodes, alpha, E):
         for i in range(self.layers-1, 0, -1):
             a = self.sigmoid(nodes[i])
             # k = current layer , j = previous layer
