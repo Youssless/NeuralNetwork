@@ -31,7 +31,7 @@ class NeuralNetwork:
                 raise Exception("model length must be > 1, a network must contain more than 1 layer")
 
 
-    def train(self, X, y, alpha=0.03, epochs=1000):
+    def train(self, X, y, alpha=0.03, epochs=100000):
         self.__back_propagate(X, y, alpha, epochs)
         return self.output(X)
 
@@ -59,8 +59,8 @@ class NeuralNetwork:
     def __back_propagate(self, X, y, alpha, epochs):
         for e in range(epochs):
             nodes = self.__forward_propagate(X)
-            #print("epoch: {}".format(e))
-            #print("cost = {}".format(self.cost(y, nodes[self.layers-1])))
+            print("epoch: {}".format(e))
+            print("cost = {}".format(self.cost(y, nodes[self.layers-1])))
             curr_error = np.array(y - nodes[self.layers-1])
             layer_error = None
             errors = []
@@ -92,7 +92,7 @@ class NeuralNetwork:
 if __name__ == "__main__":
     model = [2, 3, 1]
     X = np.array([1, 1])
-    y = np.array([1])
+    y = np.array([0])
     nn = NeuralNetwork(model)
 
     output = nn.train(X, y, alpha=0.03, epochs=1000)
