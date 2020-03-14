@@ -2,98 +2,87 @@ import numpy as np
 from numpy import random
 
 '''
-Class to model and train a neural network
- - Optimisation algorithms
-    - gradient descent (Done)
-    - stochastic gradient descent (TBC)
- - Activation functions
-    - sigmoid (Done)
-    - ReLu (TBC)
 '''
 class NeuralNetwork:
-    # model = the architecture of the network [2, 2, 2] = 2 neurons each layer
+
     def __init__(self, model):
         try:
+            if type(model) is not list:
+                raise Exception("model must be a list. [2, 3, 1, ...] defines network layout.")
+
+            if model is list:
+                if len(model) <= 1:
+                    raise Exception("model length must be larger than 1. The length of a model defines the number of layers")
+        
             self.model = model
-            self.layers = len(model)
-            self.bias = np.ones(shape=(self.layers-1, 1))
-            # each column is is a single node connection to next layer, each row is a connection from prev layer to one node in the next layer
-            self.weights = [random.random(size=(self.model[i+1], self.model[i])) for i in range(self.layers-1)]
-            
+            self.layers = len(model)-1
+            self.weights = [random.random(size=(model[i+1], model[i])) for i in range(self.layers)]
+            self.biases = [np.ones(shape=(model[i], 1)) for i in range(1, self.layers+1)]
+
         except Exception as e:
             print(e)
-            if type(model) is not list:
-                print("model is not a list.")
-                print("model must be in the format equivalent to [2, 2, 2, etc..] which defines the number of neurons in each layer")
 
-        finally:
-            if self.layers == 1:
-                raise Exception("model length must be > 1, a network must contain more than 1 layer")
+    # Z = sigmoid(W.X)
+    def sigmoid(self, O):
+        return 1 / (1 + np.exp(-O))
 
 
-    def train(self, X, y, alpha=0.03, epochs=100000):
-        self.__back_propagate(X, y, alpha, epochs)
-        return self.output(X)
+    def cost(self, y_target, y_output):
+        return (1/(self.layers+1)) * (y_target - y_output)**2
 
-    # activation funtion real values between 0 and 1
-    def sigmoid(self, Z):
-        return 1/(1+np.exp(-Z))
-
-    def cost(self, y_pred, y_actual):
-        return (1/self.layers)*np.sum((y_pred-y_actual)**2)
-
-    def output(self, X):
-        return self.__forward_propagate(X)[self.layers-1]
-
-    # calculates the next node value based on the previous layer
-    def __forward_propagate(self, X):
-        next_layer = None
-        nodes = [X]
-        for i in range(self.layers-1):
-            next_layer = np.dot(self.weights[i], X) + self.bias[i]
-            nodes.insert(i+1, next_layer)
-            X = next_layer
-        return np.array(nodes)
-
-    # back propagates to get the errors then uses gradient descent to calculate change in weights
-    def __back_propagate(self, X, y, alpha, epochs):
-        for e in range(epochs):
-            nodes = self.__forward_propagate(X)
-            print("epoch: {}".format(e))
-            print("cost = {}".format(self.cost(y, nodes[self.layers-1])))
-            curr_error = np.array(y - nodes[self.layers-1])
-            layer_error = None
-            errors = []
-
-            # calculate the error for each node
-            for i in range(self.layers-2, -1, -1):
-                errors.insert(i, curr_error)
-                layer_error = np.dot(self.weights[i].T, curr_error)
-                curr_error = layer_error
-                
-            errors.insert(0, curr_error)
-            E = np.array(errors)
-
-            # perform gradient descent
-            self.__gradient_descent(nodes, alpha, E)
-        
-    # algorithm that changes weights to give the correct output based on the error
-    def __gradient_descent(self, nodes, alpha, E):
-        for i in range(self.layers-1, 0, -1):
-            a = self.sigmoid(nodes[i])
-            # k = current layer , j = previous layer
-            # partial_C / partial_W = -[(error)*(sigmoid(Zk)*(1-sigmoid(Zk)) . Oj.Transpose]
-            delta_w = -(alpha*np.dot((E[i]*(a*(1-a))).reshape(-1, 1), nodes[i-1].reshape(-1, 1).T))
-
-            # update weights
-            self.weights[i-1] = self.weights[i-1] - delta_w
+    def train(self, x_train, y_train, alpha=0.03, epochs=10000):
+        self.back_propagate(x_train, y_train, alpha, epochs)
+        print(nn.forward_propagate(X))
 
 
-if __name__ == "__main__":
-    model = [2, 3, 1]
+    def forward_propagate(self, X):
+        O = None
+        for i in range(self.layers):
+            O = np.dot(self.weights[i], self.sigmoid(X)).reshape(-1, 1) + self.biases[i] 
+            X = O
+
+        return self.sigmoid(O)
+
+    def back_propagate(self, X, y, alpha=0.03, epochs=10000):
+        # back propagate
+        for i in range(epochs):
+            # 1. input x
+            inp = X
+            activations = [self.sigmoid(X)]
+            weighted_sums = [X]
+            # 2. feed_forward
+            for x in range(self.layers):
+                z = np.dot(self.weights[x], self.sigmoid(inp)).reshape(-1, 1) + self.biases[x]
+                inp = z
+                activations.append(self.sigmoid(z))
+                weighted_sums.append(z)
+
+            # 3. calculate the errors
+            cost_gradient = []
+            weight_delta = []
+
+            # outp error
+            cost_gradient.append(y - activations[self.layers])
+            curr_error = np.multiply(cost_gradient, self.sigmoid_prime(weighted_sums[self.layers])).reshape(-1, 1)
+            
+            for e in range(self.layers, 0, -1):
+                # hidden error
+                self.biases[e-1] = self.biases[e-1] + curr_error
+                self.weights[e-1] = self.weights[e-1] + alpha*(np.dot(curr_error, activations[e-1].reshape(-1, 1).T))
+                curr_error = np.dot(self.weights[e-1].T, curr_error)
+
+            print("epoch {0}: cost => {1}".format(i, self.cost(y, self.forward_propagate(X))))
+            
+            
+    def sigmoid_prime(self, Z):
+        return self.sigmoid(Z)*(1-self.sigmoid(Z))
+
+
+
+
+
+if __name__ == '__main__':
+    nn = NeuralNetwork([2, 3, 9])
     X = np.array([1, 1])
-    y = np.array([0])
-    nn = NeuralNetwork(model)
-
-    output = nn.train(X, y, alpha=0.03, epochs=1000)
-    print(output)
+    y_target = np.array([[0], [0], [0], [0], [0], [0], [0], [0], [1]])
+    nn.train(X, y_target, epochs=20000)
