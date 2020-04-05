@@ -2,6 +2,8 @@ import numpy as np
 from numpy import random
 from numpy.random import RandomState
 import threading
+import multiprocessing
+import time
 
 '''
 Artificial Feed Forward Neural Network
@@ -35,6 +37,12 @@ class _NeuralNetwork(threading.Thread):
         except Exception as e:
             print(e)
 
+    def init_training_params(self, x_train, y_train, alpha, epochs):
+        self.x_train = x_train
+        self.y_train = y_train
+        self.alpha = alpha
+        self.epochs = epochs
+    
     # Z = sigmoid(W.X)
     def sigmoid(self, O):
         return 1 / (1 + np.exp(-O))
@@ -94,11 +102,7 @@ class _NeuralNetwork(threading.Thread):
     def sigmoid_prime(self, Z):
         return self.sigmoid(Z)*(1-self.sigmoid(Z))
 
-    def init_training_params(self, x_train, y_train, alpha, epochs):
-        self.x_train = x_train
-        self.y_train = y_train
-        self.alpha = alpha
-        self.epochs = epochs
+    
 
 class NeuralNetwork :
     #"Thread - {}".format(random.randint(2**32, size=1, dtype='int64')
@@ -120,29 +124,11 @@ class NeuralNetwork :
 #testing with NAND gate simulation
 if __name__ == '__main__':
     nn = NeuralNetwork([2, 3, 1], 4)
-    # nn2 = NeuralNetwork([2, 3, 1])
-    # nn3 = NeuralNetwork([2, 3, 1])
-    # nn4 = NeuralNetwork([2, 3, 1])
 
     X = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
     y_target = np.array([[1], [1], [1], [0]])
 
-    # X2 = np.array([0, 1])
-    # y_target2 = np.array([1])
-
-    # X3 = np.array([1, 0])
-    # y_target3 = np.array([1])
-
-    # X4 = np.array([1, 1])
-    # y_target4 = np.array([0])
-
     nn.train(X, y_target, epochs=1000)
     nn.evaluate()
-    # nn2.train(X2, y_target2, epochs=1000)
-    # nn3.train(X3, y_target3, epochs=1000)
-    # nn4.train(X4, y_target4, epochs=1000)
     
-    # print(nn.forward_propagate(X))
-    # print(nn2.forward_propagate(X2))
-    # print(nn3.forward_propagate(X3))
-    # print(nn4.forward_propagate(X4))
+    print("Time completed {}".format(time.perf_counter()))
