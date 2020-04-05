@@ -14,10 +14,7 @@ class _NeuralNetwork(threading.Thread):
     # model = the architecture of the network [2, 2, 2] = 2 neurons each layer
     def __init__(self, model, name=None):
         super(_NeuralNetwork, self).__init__(name=name)
-        self.x_train = None
-        self.y_train = None
-        self.alpha = None
-        self.epochs = None
+        
         try:
             self.start()
             if type(model) is not list:
@@ -33,6 +30,10 @@ class _NeuralNetwork(threading.Thread):
             self.weights = [random.random(size=(model[i+1], model[i])) for i in range(self.layers)]
             self.biases = [np.ones(shape=(model[i], 1)) for i in range(1, self.layers+1)]
 
+            self.x_train = None
+            self.y_train = None
+            self.alpha = None
+            self.epochs = None
             
         except Exception as e:
             print(e)
@@ -124,33 +125,9 @@ class NeuralNetwork :
 if __name__ == '__main__':
     X = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
     y_target = np.array([[1], [1], [1], [0]])
+
     nn = NeuralNetwork([2, 3, 1], 4)
-    # nn = NeuralNetwork([2, 3, 1])
-    # nn2 = NeuralNetwork([2, 3, 1])
-    # nn3 = NeuralNetwork([2, 3, 1])
-    # nn4 = NeuralNetwork([2, 3, 1])
-
-    # X = np.array([0, 1])
-    # y_target = np.array([1])
-    
-
-    # X2 = np.array([0, 1])
-    # y_target2 = np.array([1])
-
-    # X3 = np.array([1, 0])
-    # y_target3 = np.array([1])
-
-    # X4 = np.array([1, 1])
-    # y_target4 = np.array([0])
-
-    #nn.train(X, y_target, epochs=1000)
-    #nn2.train(X2, y_target2, epochs=1000)
-    #nn3.train(X3, y_target3, epochs=1000)
-    #nn4.train(X4, y_target4, epochs=1000)
-    
-    #nn.evaluate()
-    #nn2.evaluate()
-    #nn3.evaluate()
-    #nn4.evaluate()
+    nn.train(X, y_target, epochs=1000)
+    nn.evaluate()
 
     print("Completed in {}".format(time.perf_counter()))
