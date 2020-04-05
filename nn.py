@@ -1,5 +1,8 @@
 import numpy as np
 from numpy import random
+from numpy.random import RandomState
+import threading
+import time
 
 '''
 Artificial Feed Forward Neural Network
@@ -7,10 +10,13 @@ Artificial Feed Forward Neural Network
 - Gradient Descent optimiseation
 - Cost function MSE
 '''
-class NeuralNetwork:
+class _NeuralNetwork(threading.Thread):
     # model = the architecture of the network [2, 2, 2] = 2 neurons each layer
-    def __init__(self, model):
+    def __init__(self, model, name=None):
+        super(_NeuralNetwork, self).__init__(name=name)
+        
         try:
+            self.start()
             if type(model) is not list:
                 raise Exception("model must be a list. [2, 3, 1, ...] defines network layout.")
 
@@ -24,6 +30,11 @@ class NeuralNetwork:
             self.weights = [random.random(size=(model[i+1], model[i])) for i in range(self.layers)]
             self.biases = [np.ones(shape=(model[i], 1)) for i in range(1, self.layers+1)]
 
+            self.x_train = None
+            self.y_train = None
+            self.alpha = None
+            self.epochs = None
+            
         except Exception as e:
             print(e)
 
@@ -36,10 +47,9 @@ class NeuralNetwork:
     def cost(self, y_target, y_output):
         return (1/(self.layers+1)) * (y_target - y_output)**2
 
-    # wrapper function to call backpropagation to train the network
-    def train(self, x_train, y_train, alpha=0.03, epochs=10000):
-        self.back_propagate(x_train, y_train, alpha, epochs)
-        print(nn.forward_propagate(X))
+
+    def run(self):
+        self.back_propagate(self.x_train, self.y_train, self.alpha, self.epochs)
 
 
     # the initial step before training the network is to calculate the values of the neurons in the next layer
@@ -87,11 +97,37 @@ class NeuralNetwork:
     def sigmoid_prime(self, Z):
         return self.sigmoid(Z)*(1-self.sigmoid(Z))
 
+    def init_training_params(self, x_train, y_train, alpha=0.03, epochs=1000):
+        self.x_train = x_train
+        self.y_train = y_train
+        self.alpha = alpha
+        self.epochs = epochs
 
-# testing with NAND gate simulation
+class NeuralNetwork :
+    #"Thread - {}".format(random.randint(2**32, size=1, dtype='int64')
+    def __init__(self, model, input_dim):
+        self.input_dim = input_dim
+        self.nn_thread = _NeuralNetwork(model=model, name="Thread - {}".format(random.randint(2**32, size=1, dtype='int64')))
+        self.output = [] 
+
+    # wrapper function to call backpropagation to train the network
+    def train(self, x_train, y_train, alpha=0.03, epochs=10000):
+        for i in range(self.input_dim):
+            print(x_train)
+            self.nn_thread.init_training_params(x_train[i], y_train[i], alpha, epochs)
+            self.nn_thread.run()
+            self.output.insert(i, self.nn_thread.forward_propagate(x_train[i]))
+
+    def evaluate(self):
+        print(np.array(self.output).reshape(-1, 1))
+
+#testing with NAND gate simulation
 if __name__ == '__main__':
-    nn = NeuralNetwork([2, 3, 1])
-    X = np.array([0, 0])
-    y_target = np.array([[1]])
-    nn.train(X, y_target, epochs=10000)
-    print(nn.forward_propagate(X))
+    X = np.array([[0, 0], [0, 1], [1, 0], [1, 1]])
+    y_target = np.array([[1], [1], [1], [0]])
+
+    nn = NeuralNetwork([2, 3, 1], 4)
+    nn.train(X, y_target, epochs=1000)
+    nn.evaluate()
+
+    print("Completed in {}".format(time.perf_counter()))

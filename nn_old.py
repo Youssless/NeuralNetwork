@@ -1,5 +1,6 @@
 import numpy as np
 from numpy import random
+import time
 
 '''
 Class to model and train a neural network
@@ -91,9 +92,28 @@ class NeuralNetwork:
 
 if __name__ == "__main__":
     model = [2, 3, 1]
-    X = np.array([1, 1])
-    y = np.array([0])
-    nn = NeuralNetwork(model)
+    model = [2, 3, 1]
+    nn = NeuralNetwork([2, 3, 1])
+    nn2 = NeuralNetwork([2, 3, 1])
+    nn3 = NeuralNetwork([2, 3, 1])
+    nn4 = NeuralNetwork([2, 3, 1])
 
-    output = nn.train(X, y, alpha=0.03, epochs=1000)
-    print(output)
+    X = np.array([0, 1])
+    y_target = np.array([1])
+    
+
+    X2 = np.array([0, 1])
+    y_target2 = np.array([1])
+
+    X3 = np.array([1, 0])
+    y_target3 = np.array([1])
+
+    X4 = np.array([1, 1])
+    y_target4 = np.array([0])
+
+    nn.train(X, y_target, epochs=1000)
+    nn2.train(X2, y_target2, epochs=1000)
+    nn3.train(X3, y_target3, epochs=1000)
+    nn4.train(X4, y_target4, epochs=1000)
+
+    print("Completed in {}".format(time.perf_counter()))
