@@ -2,6 +2,7 @@ import numpy as np
 from numpy import random
 from numpy.random import RandomState
 import threading
+import multiprocessing
 import time
 
 '''
@@ -10,13 +11,10 @@ Artificial Feed Forward Neural Network
 - Gradient Descent optimiseation
 - Cost function MSE
 '''
-class _NeuralNetwork(threading.Thread):
+class _NeuralNetwork:
     # model = the architecture of the network [2, 2, 2] = 2 neurons each layer
-    def __init__(self, model, name=None):
-        super(_NeuralNetwork, self).__init__(name=name)
-        
+    def __init__(self, model):
         try:
-            self.start()
             if type(model) is not list:
                 raise Exception("model must be a list. [2, 3, 1, ...] defines network layout.")
 
@@ -46,10 +44,6 @@ class _NeuralNetwork(threading.Thread):
     # cost needs to be minimised as close as possible to 0
     def cost(self, y_target, y_output):
         return (1/(self.layers+1)) * (y_target - y_output)**2
-
-
-    def run(self):
-        self.back_propagate(self.x_train, self.y_train, self.alpha, self.epochs)
 
 
     # the initial step before training the network is to calculate the values of the neurons in the next layer
@@ -107,16 +101,22 @@ class NeuralNetwork :
     #"Thread - {}".format(random.randint(2**32, size=1, dtype='int64')
     def __init__(self, model, input_dim):
         self.input_dim = input_dim
-        self.nn_thread = _NeuralNetwork(model=model, name="Thread - {}".format(random.randint(2**32, size=1, dtype='int64')))
+        self.model = model
+        self.nn_processes = []
         self.output = [] 
 
     # wrapper function to call backpropagation to train the network
     def train(self, x_train, y_train, alpha=0.03, epochs=10000):
         for i in range(self.input_dim):
-            print(x_train)
-            self.nn_thread.init_training_params(x_train[i], y_train[i], alpha, epochs)
-            self.nn_thread.run()
-            self.output.insert(i, self.nn_thread.forward_propagate(x_train[i]))
+            process_target = _NeuralNetwork(self.model)
+            process = multiprocessing.Process(target=process_target.back_propagate, args=(x_train[i], y_train[i], alpha, epochs))
+
+            process.start()
+            self.nn_processes.append(process)
+            self.output.append(process_target.forward_propagate(x_train[i]))
+        
+        for process in self.nn_processes:
+            process.join()
 
     def evaluate(self):
         print(np.array(self.output).reshape(-1, 1))
